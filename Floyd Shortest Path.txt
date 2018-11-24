@@ -1,0 +1,180 @@
+﻿/*
+	작성일 : 18.11.20
+	프로그램명 : Floyd의 최단 경로 알고리즘
+	작성자 : 김혜린
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int **A;	//
+int **B;	//이전의 A배열을 저장하는 배열
+
+void display(int count)
+{
+	for (int i = 0; i < count; i++) 
+		printf(" %3d", i);
+
+	printf("\n |---------------------------|\n");
+
+	for (int i = 0; i < count; i++)
+	{
+		printf("%d|", i);
+		for (int j = 0; j < count; j++)
+		{
+			//A의 이전 배열이 저장되어 있는 B배열과 값을 비교
+			if (A[i][j] != B[i][j])	//다르다면
+				printf("*%2d|", A[i][j]);	//*출력으로 변경값 출력
+
+			else if (A[i][j] == 'x')
+				printf("  x|");
+
+			else
+				printf(" %2d|", A[i][j]);
+		}
+		printf("\n");
+	}
+	printf(" |---------------------------|\n");
+}
+
+void floyd(int n, int **weight)
+{
+	int i, j, k;
+
+	//현재 배열A의 값을 B에 저장
+	for (i = 0; i < n; i++) 
+	{
+		for (j = 0; j < n; j++) 
+		{
+			A[i][j] = weight[i][j];
+			B[i][j] = weight[i][j];
+		}
+	}
+
+	for (k = 0; k < n; k++) {
+		printf("\n< %d번 정점 열림 >\n", k);
+		for (i = 0; i < n; i++) {
+			for (j = 0; j < n; j++) 
+			{
+				B[i][j] = A[i][j];	//배열A의 데이터를 B에 저장
+				if (A[i][k] + A[k][j] < A[i][j])
+					A[i][j] = A[i][k] + A[k][j];
+			}
+		}
+		display(n);		//현재의 가중치를 출력하기 위한 함수 호출
+	}
+}
+
+int main()
+{
+	FILE *fp;
+	int **weight;
+	int count = 0;
+	int a, b, c;
+	char ch;
+
+	fp = fopen("data01.txt", "r");
+
+	if (fp == NULL)
+	{
+		printf("파일이 비어있다.");
+		return 0;
+	}
+
+	while (!feof(fp))
+	{
+		fscanf(fp, " %c", &ch);
+
+		if (ch == 'v')	//읽어온 값이 v이라면
+		{
+			fscanf(fp, " %d", &a);
+			count++;	//데이터의 개수를 세어 저장
+		}
+
+		else
+			break;
+	}
+
+	rewind(fp);
+
+	//전역 변수인 배열 동적할당
+	A = (int **)malloc(sizeof(int *)*count);
+	for (int i = 0; i < count; i++)
+	{
+		A[i] = (int *)malloc(sizeof(int)*count);
+	}
+
+	B = (int **)malloc(sizeof(int *)*count);
+	for (int i = 0; i < count; i++)
+	{
+		B[i] = (int *)malloc(sizeof(int)*count);
+	}
+
+	//가중치를 저장하기 위한 배열 동적할당
+	weight = (int **)malloc(sizeof(int *)*count);
+	for (int i = 0; i < count; i++)
+	{
+		weight[i] = (int *)malloc(sizeof(int)*count);
+	}
+
+	//가중치 배열 초기화
+	for (int k = 0; k < count; k++)
+	{
+		for (int j = 0; j < count; j++)
+		{
+			if (k == j)
+				weight[k][j] = 0;
+			else
+				weight[k][j] = 'x';
+		}
+	}
+
+	while (!feof(fp))
+	{
+		fscanf(fp, " %c", &ch);
+
+		if (ch == 'v')
+			fscanf(fp, "%d", &a);
+
+		else
+		{
+			fscanf(fp, "%d %d %d", &a, &b, &c);
+			weight[a][b] = c;	//가중치 배열에 값을 저장
+			weight[b][a] = c;
+		}
+	}
+
+	printf("< 초기 상태 >\n");
+
+	for (int i = 0; i < count; i++)
+		printf("   %d", i);
+
+
+	printf("\n |---------------------------|\n");
+
+	//현재 가중치 배열을 출력
+	for (int i = 0; i < count; i++)
+	{
+		printf("%d|", i);
+		for (int j = 0; j < count;j++)
+		{
+			if (weight[i][j] == 'x')
+				printf("  x|");
+
+			else
+				printf("*%2d|", weight[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf(" |---------------------------|\n");
+
+	//floyd함수를 호출하여 최단경로 구하기
+	floyd(count, weight);
+
+	for (int i = 0;i < count;i++)
+		free(weight[i]);
+	free(weight);
+	fclose(fp);
+	return 0;
+}
