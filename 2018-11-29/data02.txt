@@ -1,0 +1,5 @@
+﻿car 자동차
+try 시도하다
+love 사랑
+happy 행복
+cite 인용문
